@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:thailand_clothing/feature/Bottomnav/bottomnavbar.dart';
 import 'package:thailand_clothing/feature/Deliveryaddress/deliveryaddress.dart';
-import 'package:thailand_clothing/feature/Home/screen/homescreen.dart';
+import 'package:thailand_clothing/feature/Home/screen/mainhomescreen.dart';
 import 'package:thailand_clothing/feature/Notification/notification.dart';
 import 'package:thailand_clothing/feature/Profile/screen/CancleOrder/cancleorder.dart';
 import 'package:thailand_clothing/feature/Profile/screen/Confirmcancel/confirmcancel.dart';
@@ -61,7 +61,7 @@ class AppRouter {
       ),
       GoRoute(
         path: homescreen,
-        builder: (context, state) => const HomeScreen(),
+        builder: (context, state) => const Mainhomescreen(),
       ),
       GoRoute(
         path: delivery,

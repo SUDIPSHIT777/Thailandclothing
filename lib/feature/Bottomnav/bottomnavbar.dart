@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:thailand_clothing/feature/Home/screen/homescreen.dart';
+import 'package:thailand_clothing/feature/Home/screen/mainhomescreen.dart';
 import 'package:thailand_clothing/feature/Profile/screen/ProfileScreen/profilescreen.dart';
 
 class BottomNavBar extends StatefulWidget {
@@ -11,20 +11,20 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   int selectedIndex = 0;
-  void _openProfile() {
-    setState(() {
-      selectedIndex = 4;
-    });
-  }
+  // void _openProfile() {
+  //   setState(() {
+  //     selectedIndex = 4;
+  //   });
+  // }
 
-  void _openWishlistTap() {
-    setState(() {
-      selectedIndex = 4;
-    });
-  }
+  // void _openWishlistTap() {
+  //   setState(() {
+  //     selectedIndex = 4;
+  //   });
+  // }
 
   late final List<Widget> pages = [
-    HomeScreen(onProfileTap: _openProfile, onWishlistTap: _openWishlistTap),
+    Mainhomescreen(),
     const SizedBox(),
     const SizedBox(),
     const SizedBox(),

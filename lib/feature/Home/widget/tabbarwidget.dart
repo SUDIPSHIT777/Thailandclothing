@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:thailand_clothing/core/utils/appcolor.dart';
 
 class CustomTabHeader extends StatefulWidget {
@@ -8,136 +9,206 @@ class CustomTabHeader extends StatefulWidget {
   State<CustomTabHeader> createState() => _CustomTabHeaderState();
 }
 
-class _CustomTabHeaderState extends State<CustomTabHeader> {
-  int selectedTab = 0;
-  final List<String> tabs = ['ALL', 'H&M', 'KOLIVA', 'ORPIT', 'WOQ', 'ZARA'];
+class _CustomTabHeaderState extends State<CustomTabHeader>
+    with SingleTickerProviderStateMixin {
+  final List<String> tabs = ['ALL', 'H&M', 'KOLIVA', 'ORPIT', 'WOQ'];
 
-  final List<GlobalKey> _tabKeys = [];
-  final ScrollController _scrollController = ScrollController();
+  int selectedTab = 0;
+
+  late final AnimationController _controller;
+  Animation<Rect?>? _rectAnimation;
+
+  Rect? _currentRect;
+  List<Rect> _tabRects = [];
+
+  static const double _tabHeight = 32;
+  static const double _horizontalPadding = 12;
+  static const double _sidePadding = 12;
 
   @override
   void initState() {
     super.initState();
 
-    _tabKeys.addAll(List.generate(tabs.length, (_) => GlobalKey()));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {});
-      }
+  Rect? get _displayRect => _rectAnimation?.value ?? _currentRect;
+
+  void _selectTab(int index) {
+    if (selectedTab == index || index < 0 || index >= _tabRects.length) {
+      return;
+    }
+
+    final targetRect = _tabRects[index];
+    final currentRect = _displayRect ?? _tabRects[selectedTab];
+
+    _controller.stop();
+
+    setState(() {
+      selectedTab = index;
+      _currentRect = currentRect;
+
+      _rectAnimation = RectTween(begin: currentRect, end: targetRect).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+      );
     });
+
+    _controller.forward(from: 0).then((_) {
+      if (!mounted) return;
+
+      setState(() {
+        _currentRect = targetRect;
+        _rectAnimation = AlwaysStoppedAnimation<Rect?>(targetRect);
+      });
+    });
+  }
+
+  List<Rect> _calculateTabRects(double availableWidth) {
+    final textWidths = tabs.map((tab) {
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: tab,
+          style: GoogleFonts.figtree(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+        textDirection: Directionality.of(context),
+        maxLines: 1,
+      )..layout();
+
+      // Text width plus padding on both sides of each tab.
+      return textPainter.width + (_horizontalPadding * 2);
+    }).toList();
+
+    final totalTabsWidth = textWidths.fold<double>(
+      0,
+      (total, width) => total + width,
+    );
+
+    // Reserve space at both outer edges.
+    final usableWidth = (availableWidth - (_sidePadding * 2)).clamp(
+      0.0,
+      double.infinity,
+    );
+
+    final gap = tabs.length > 1 && totalTabsWidth < usableWidth
+        ? (usableWidth - totalTabsWidth) / (tabs.length - 1)
+        : 0.0;
+
+    double left = _sidePadding;
+    final rects = <Rect>[];
+
+    for (var i = 0; i < tabs.length; i++) {
+      final width = textWidths[i];
+
+      rects.add(Rect.fromLTWH(left, 0, width, _tabHeight));
+
+      left += width + gap;
+    }
+
+    return rects;
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 30,
-      child: Stack(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(left: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: List.generate(tabs.length, (i) {
-                      final selected = i == selectedTab;
+      width: double.infinity,
+      height: _tabHeight,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          _tabRects = _calculateTabRects(constraints.maxWidth);
 
-                      return GestureDetector(
-                        key: _tabKeys[i],
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          setState(() => selectedTab = i);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOutCubic,
-                          margin: const EdgeInsets.symmetric(horizontal: 2),
-                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 250),
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: selected
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: selected
-                                  ? AppColors.maroon
-                                  : Colors.black87,
-                              letterSpacing: 0.5,
-                            ),
-                            child: Text(tabs[i]),
-                          ),
+          if (_currentRect == null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted || _currentRect != null) return;
+
+              final rect = _tabRects[selectedTab];
+
+              setState(() {
+                _currentRect = rect;
+                _rectAnimation = AlwaysStoppedAnimation<Rect?>(rect);
+              });
+            });
+          }
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Fixed labels with dynamic spacing.
+              for (var i = 0; i < tabs.length; i++)
+                Positioned(
+                  left: _tabRects[i].left,
+                  width: _tabRects[i].width,
+                  top: 0,
+                  bottom: 0,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _selectTab(i),
+                    child: Center(
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        style: GoogleFonts.figtree(
+                          fontSize: 13,
+                          fontWeight: selectedTab == i
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: selectedTab == i
+                              ? AppColors.maroon
+                              : Colors.black87,
+                          letterSpacing: 0.5,
+                        ),
+                        child: Text(tabs[i], maxLines: 1, softWrap: false),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Animated outline follows each tab's text width.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: SeamlessTabPainter(
+                          activeRect: _displayRect,
+                          color: AppColors.bagPrimaryPink,
+                          strokeWidth: 1,
                         ),
                       );
-                    }),
+                    },
                   ),
                 ),
               ),
             ],
-          ),
-
-          // Dynamically repaint curve frame-by-frame on scroll
-          Positioned.fill(
-            child: IgnorePointer(
-              child: AnimatedBuilder(
-                animation: _scrollController,
-                builder: (context, _) {
-                  Rect? activeTabRect;
-
-                  if (_tabKeys.length > selectedTab &&
-                      _tabKeys[selectedTab].currentContext != null) {
-                    final RenderBox box =
-                        _tabKeys[selectedTab].currentContext!.findRenderObject()
-                            as RenderBox;
-                    final RenderBox? ancestor =
-                        context.findRenderObject() as RenderBox?;
-                    if (ancestor != null) {
-                      final offset = box.localToGlobal(
-                        Offset.zero,
-                        ancestor: ancestor,
-                      );
-                      activeTabRect = offset & box.size;
-                    }
-                  }
-
-                  return CustomPaint(
-                    painter: SeamlessTabPainter(
-                      activeRect: activeTabRect,
-                      color: AppColors.maroon,
-                      strokeWidth: 1.8,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 }
 
-/// Custom Painter with enhanced curves that dynamically tracks scroll movement
 class SeamlessTabPainter extends CustomPainter {
   final Rect? activeRect;
   final Color color;
   final double strokeWidth;
 
-  SeamlessTabPainter({
+  const SeamlessTabPainter({
     required this.activeRect,
     required this.color,
-    this.strokeWidth = 1.8,
+    this.strokeWidth = 1,
   });
 
   @override
@@ -149,59 +220,43 @@ class SeamlessTabPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    final baseline = size.height - (strokeWidth / 2);
+    final baseline = size.height - strokeWidth / 2;
+    final rect = activeRect;
     final path = Path();
 
-    if (activeRect == null) {
-      path.moveTo(0, baseline);
-      path.lineTo(size.width, baseline);
+    if (rect == null) {
+      path
+        ..moveTo(0, baseline)
+        ..lineTo(size.width, baseline);
+
       canvas.drawPath(path, paint);
       return;
     }
 
-    final double rectLeft = activeRect!.left;
-    final double rectRight = activeRect!.right;
-    final double rectTop = activeRect!.top;
+    final left = rect.left;
+    final right = rect.right;
 
-    const double topRadius = 14.0;
-    const double bottomRadius = 12.0;
+    const top = 0.5;
+    const topRadius = 10.0;
+    const bottomRadius = 8.0;
 
-    // Baseline start
     path.moveTo(0, baseline);
-    path.lineTo(rectLeft - bottomRadius, baseline);
+    path.lineTo(left - bottomRadius, baseline);
 
-    // Left outward curve
-    path.quadraticBezierTo(
-      rectLeft,
-      baseline,
-      rectLeft,
-      baseline - bottomRadius,
-    );
+    path.quadraticBezierTo(left, baseline, left, baseline - bottomRadius);
 
-    // Left wall
-    path.lineTo(rectLeft, rectTop + topRadius);
+    path.lineTo(left, top + topRadius);
 
-    // Top-left corner curve
-    path.quadraticBezierTo(rectLeft, rectTop, rectLeft + topRadius, rectTop);
+    path.quadraticBezierTo(left, top, left + topRadius, top);
 
-    // Top border
-    path.lineTo(rectRight - topRadius, rectTop);
+    path.lineTo(right - topRadius, top);
 
-    // Top-right corner curve
-    path.quadraticBezierTo(rectRight, rectTop, rectRight, rectTop + topRadius);
+    path.quadraticBezierTo(right, top, right, top + topRadius);
 
-    // Right wall
-    path.lineTo(rectRight, baseline - bottomRadius);
+    path.lineTo(right, baseline - bottomRadius);
 
-    // Right outward curve
-    path.quadraticBezierTo(
-      rectRight,
-      baseline,
-      rectRight + bottomRadius,
-      baseline,
-    );
+    path.quadraticBezierTo(right, baseline, right + bottomRadius, baseline);
 
-    // Baseline end
     path.lineTo(size.width, baseline);
 
     canvas.drawPath(path, paint);

@@ -9,7 +9,7 @@ class AppTheme {
 
       scaffoldBackgroundColor: AppColors.scaffoldBg,
 
-      fontFamily: GoogleFonts.poppins().fontFamily,
+      fontFamily: GoogleFonts.figtree().fontFamily,
 
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.appBarBg,
