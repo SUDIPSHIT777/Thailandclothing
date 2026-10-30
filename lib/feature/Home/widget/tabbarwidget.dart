@@ -3,7 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:thailand_clothing/core/utils/appcolor.dart';
 
 class CustomTabHeader extends StatefulWidget {
-  const CustomTabHeader({super.key});
+  /// 1 = original peach background, 0 = transparent (used by the
+  /// collapsing home header to fade the background to white).
+  final double backgroundOpacity;
+
+  const CustomTabHeader({super.key, this.backgroundOpacity = 1.0});
 
   @override
   State<CustomTabHeader> createState() => _CustomTabHeaderState();
@@ -81,7 +85,6 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
         maxLines: 1,
       )..layout();
 
-      // Text width plus padding on both sides of each tab.
       return textPainter.width + (_horizontalPadding * 2);
     }).toList();
 
@@ -90,7 +93,6 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
       (total, width) => total + width,
     );
 
-    // Reserve space at both outer edges.
     final usableWidth = (availableWidth - (_sidePadding * 2)).clamp(
       0.0,
       double.infinity,
@@ -122,83 +124,118 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      height: _tabHeight,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          _tabRects = _calculateTabRects(constraints.maxWidth);
 
-          if (_currentRect == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted || _currentRect != null) return;
+      // Continuous background for tabs and avatars.
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFFF0ACA4).withValues(alpha: widget.backgroundOpacity),
+            const Color(0xFFF4B3A6).withValues(alpha: widget.backgroundOpacity),
+          ],
+        ),
+      ),
 
-              final rect = _tabRects[selectedTab];
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ==========================================
+          // ORIGINAL TAB BAR - DESIGN UNCHANGED
+          // ==========================================
 
-              setState(() {
-                _currentRect = rect;
-                _rectAnimation = AlwaysStoppedAnimation<Rect?>(rect);
-              });
-            });
-          }
+          SizedBox(
+            width: double.infinity,
+            height: _tabHeight,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                _tabRects = _calculateTabRects(constraints.maxWidth);
 
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Fixed labels with dynamic spacing.
-              for (var i = 0; i < tabs.length; i++)
-                Positioned(
-                  left: _tabRects[i].left,
-                  width: _tabRects[i].width,
-                  top: 0,
-                  bottom: 0,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _selectTab(i),
-                    child: Center(
-                      child: AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        style: GoogleFonts.figtree(
-                          fontSize: 13,
-                          fontWeight: selectedTab == i
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: selectedTab == i
-                              ? AppColors.maroon
-                              : Colors.black87,
-                          letterSpacing: 0.5,
+                if (_currentRect == null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted || _currentRect != null) {
+                      return;
+                    }
+
+                    final rect = _tabRects[selectedTab];
+
+                    setState(() {
+                      _currentRect = rect;
+                      _rectAnimation = AlwaysStoppedAnimation<Rect?>(rect);
+                    });
+                  });
+                }
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Original tab labels.
+                    for (var i = 0; i < tabs.length; i++)
+                      Positioned(
+                        left: _tabRects[i].left,
+                        width: _tabRects[i].width,
+                        top: 0,
+                        bottom: 0,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _selectTab(i),
+                          child: Center(
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeInOut,
+                              style: GoogleFonts.figtree(
+                                fontSize: 13,
+                                fontWeight: selectedTab == i
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: selectedTab == i
+                                    ? AppColors.maroon
+                                    : Colors.black87,
+                                letterSpacing: 0.5,
+                              ),
+                              child: Text(
+                                tabs[i],
+                                maxLines: 1,
+                                softWrap: false,
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Text(tabs[i], maxLines: 1, softWrap: false),
+                      ),
+
+                    // Original animated outline painter.
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedBuilder(
+                          animation: _controller,
+                          builder: (context, child) {
+                            return CustomPaint(
+                              painter: SeamlessTabPainter(
+                                activeRect: _displayRect,
+                                color: AppColors.bagPrimaryPink,
+                                strokeWidth: 1,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                ),
-
-              // Animated outline follows each tab's text width.
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, child) {
-                      return CustomPaint(
-                        painter: SeamlessTabPainter(
-                          activeRect: _displayRect,
-                          color: AppColors.bagPrimaryPink,
-                          strokeWidth: 1,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
+// ====================================================
+// ORIGINAL SEAMLESS TAB PAINTER - UNCHANGED
+// ====================================================
 
 class SeamlessTabPainter extends CustomPainter {
   final Rect? activeRect;

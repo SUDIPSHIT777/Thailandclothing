@@ -29,7 +29,6 @@ class _FestiveBannerSliderState extends State<FestiveBannerSlider> {
 
     return Container(
       width: double.infinity,
-
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
