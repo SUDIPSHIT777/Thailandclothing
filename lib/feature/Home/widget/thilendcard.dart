@@ -7,8 +7,43 @@ class ThailandPromoCard extends StatelessWidget {
 
   const ThailandPromoCard({super.key, this.height = 180});
 
+  static const Color backgroundTop = Color(0xFFF2B2A5);
+  static const Color backgroundMiddle = Color(0xFFF5A69F);
+  static const Color backgroundBottom = Color(0xFFFFB084);
+
   @override
   Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [backgroundTop, backgroundMiddle, backgroundBottom],
+          stops: [0.0, 0.5, 1.0],
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Original promo card - unchanged
+          _buildPromoCard(context),
+
+          // Group 5 image - no padding and no gap
+          GestureDetector(
+            onTap: () {},
+            child: Image.asset(
+              'assets/Group 5.png',
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPromoCard(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final double width = constraints.maxWidth;
@@ -34,6 +69,7 @@ class ThailandPromoCard extends StatelessWidget {
         return Container(
           width: double.infinity,
           height: height,
+
           decoration: BoxDecoration(
             color: AppColors.cardBg,
             borderRadius: BorderRadius.circular(24),
@@ -46,6 +82,7 @@ class ThailandPromoCard extends StatelessWidget {
               ),
             ],
           ),
+
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: LayoutBuilder(
@@ -84,7 +121,7 @@ class ThailandPromoCard extends StatelessWidget {
                         flex: 5,
                         child: Image.asset(
                           'assets/Thai Silk Elegance with Tropical Blooms 1.png',
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                           height: imageHeight,
                           errorBuilder: (_, _, _) => const SizedBox.shrink(),
                         ),
@@ -140,7 +177,6 @@ class ThailandPromoCard extends StatelessWidget {
             color: AppColors.darkText,
           ),
         ),
-        SizedBox(height: isSmall ? 6 : 10),
         _buildExploreButton(context),
       ],
     );
@@ -161,10 +197,7 @@ class ThailandPromoCard extends StatelessWidget {
         backgroundColor: AppColors.exploreBlue,
         foregroundColor: Colors.white,
         elevation: 0,
-
-        // Increased button height.
         minimumSize: const Size(0, 36),
-
         padding: EdgeInsets.symmetric(
           horizontal: horizontalPadding,
           vertical: 8,

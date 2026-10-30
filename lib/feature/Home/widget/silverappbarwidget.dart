@@ -335,8 +335,9 @@ class CategoryAvatarSection extends StatelessWidget {
                       textAlign: TextAlign.center,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 8,
+                        fontSize: 10,
                         height: 1.1,
+                        fontWeight: FontWeight.w600,
                         color: _ink,
                       ),
                     ),

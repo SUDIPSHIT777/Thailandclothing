@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:thailand_clothing/feature/Home/widget/festabileslider.dart';
+import 'package:thailand_clothing/feature/Home/widget/productcard.dart';
 import 'package:thailand_clothing/feature/Home/widget/silverappbarwidget.dart';
+import 'package:thailand_clothing/feature/Home/widget/thilendcard.dart';
 
 class Mainhomescreen extends StatelessWidget {
   const Mainhomescreen({super.key});
@@ -45,17 +48,12 @@ class Mainhomescreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           HomeSliverAppBar(categories: _categories),
-
           SliverToBoxAdapter(
             child: CategoryAvatarSection(categories: _categories),
           ),
-
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => ListTile(title: Text('Item $index')),
-              childCount: 40,
-            ),
-          ),
+          SliverToBoxAdapter(child: FestiveBannerSlider()),
+          SliverToBoxAdapter(child: const ThailandPromoCard()),
+          SliverToBoxAdapter(child: ProductCardCarousel()),
         ],
       ),
     );
