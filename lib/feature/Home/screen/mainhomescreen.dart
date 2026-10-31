@@ -12,9 +12,9 @@ class Mainhomescreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           HomeSliverAppBar(),
-          SliverToBoxAdapter(child: FestiveBannerSlider()),
+          SliverToBoxAdapter(child: const FestiveBannerSlider()),
           SliverToBoxAdapter(child: const ThailandPromoCard()),
-          SliverToBoxAdapter(child: ProductCardCarousel()),
+          SliverToBoxAdapter(child: const ProductCardCarousel()),
         ],
       ),
     );

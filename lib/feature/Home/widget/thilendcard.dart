@@ -7,9 +7,9 @@ class ThailandPromoCard extends StatelessWidget {
 
   const ThailandPromoCard({super.key, this.height = 180});
 
-  static const Color backgroundTop = Color(0xFFF2B2A5);
-  static const Color backgroundMiddle = Color(0xFFF5A69F);
-  static const Color backgroundBottom = Color(0xFFFFB084);
+  static const Color backgroundTop = Color(0xFFF4BD7A);
+  static const Color backgroundMiddle = Color(0xFFF2AD79);
+  static const Color backgroundBottom = Color(0xFFF49A78);
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +69,6 @@ class ThailandPromoCard extends StatelessWidget {
         return Container(
           width: double.infinity,
           height: height,
-
           decoration: BoxDecoration(
             color: AppColors.cardBg,
             borderRadius: BorderRadius.circular(24),
@@ -82,7 +81,6 @@ class ThailandPromoCard extends StatelessWidget {
               ),
             ],
           ),
-
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: LayoutBuilder(
