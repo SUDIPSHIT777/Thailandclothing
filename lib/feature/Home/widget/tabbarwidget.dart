@@ -3,8 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:thailand_clothing/core/utils/appcolor.dart';
 
 class CustomTabHeader extends StatefulWidget {
-  /// 1 = original peach background, 0 = transparent (used by the
-  /// collapsing home header to fade the background to white).
   final double backgroundOpacity;
 
   const CustomTabHeader({super.key, this.backgroundOpacity = 1.0});
@@ -25,7 +23,7 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
   Rect? _currentRect;
   List<Rect> _tabRects = [];
 
-  static const double _tabHeight = 32;
+  static const double _tabHeight = 20;
   static const double _horizontalPadding = 12;
   static const double _sidePadding = 12;
 
@@ -70,11 +68,23 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
     });
   }
 
+  // RESPONSIVE TAB WIDTH CALCULATION
   List<Rect> _calculateTabRects(double availableWidth) {
-    final textWidths = tabs.map((tab) {
+    final safeWidth = availableWidth > 0 ? availableWidth : 0.0;
+
+    final usableWidth = (safeWidth - (_sidePadding * 2)).clamp(
+      0.0,
+      double.infinity,
+    );
+
+    final cellWidth = usableWidth / tabs.length;
+
+    final rects = <Rect>[];
+
+    for (var i = 0; i < tabs.length; i++) {
       final textPainter = TextPainter(
         text: TextSpan(
-          text: tab,
+          text: tabs[i],
           style: GoogleFonts.figtree(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -85,32 +95,17 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
         maxLines: 1,
       )..layout();
 
-      return textPainter.width + (_horizontalPadding * 2);
-    }).toList();
+      // Prevent tab width from exceeding its available cell.
+      final desiredWidth = textPainter.width + (_horizontalPadding * 2);
 
-    final totalTabsWidth = textWidths.fold<double>(
-      0,
-      (total, width) => total + width,
-    );
+      final tabWidth = desiredWidth > cellWidth ? cellWidth : desiredWidth;
 
-    final usableWidth = (availableWidth - (_sidePadding * 2)).clamp(
-      0.0,
-      double.infinity,
-    );
+      // Center each tab inside its responsive cell.
+      final cellLeft = _sidePadding + (i * cellWidth);
 
-    final gap = tabs.length > 1 && totalTabsWidth < usableWidth
-        ? (usableWidth - totalTabsWidth) / (tabs.length - 1)
-        : 0.0;
+      final left = cellLeft + ((cellWidth - tabWidth) / 2);
 
-    double left = _sidePadding;
-    final rects = <Rect>[];
-
-    for (var i = 0; i < tabs.length; i++) {
-      final width = textWidths[i];
-
-      rects.add(Rect.fromLTWH(left, 0, width, _tabHeight));
-
-      left += width + gap;
+      rects.add(Rect.fromLTWH(left, 0, tabWidth, _tabHeight));
     }
 
     return rects;
@@ -126,8 +121,6 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-
-      // Continuous background for tabs and avatars.
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -142,10 +135,10 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ==========================================
-          // ORIGINAL TAB BAR - DESIGN UNCHANGED
-          // ==========================================
+          // TOP SPACING
+          const SizedBox(height: 5),
 
+          // TAB BAR
           SizedBox(
             width: double.infinity,
             height: _tabHeight,
@@ -153,11 +146,13 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
               builder: (context, constraints) {
                 _tabRects = _calculateTabRects(constraints.maxWidth);
 
-                if (_currentRect == null) {
+                if (_currentRect == null && _tabRects.isNotEmpty) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted || _currentRect != null) {
                       return;
                     }
+
+                    if (_tabRects.isEmpty) return;
 
                     final rect = _tabRects[selectedTab];
 
@@ -169,13 +164,19 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
                 }
 
                 return Stack(
-                  clipBehavior: Clip.none,
+                  clipBehavior: Clip.hardEdge,
                   children: [
-                    // Original tab labels.
+                    // TAB LABELS
                     for (var i = 0; i < tabs.length; i++)
                       Positioned(
-                        left: _tabRects[i].left,
-                        width: _tabRects[i].width,
+                        left:
+                            _sidePadding +
+                            (i *
+                                (constraints.maxWidth - (_sidePadding * 2)) /
+                                tabs.length),
+                        width:
+                            (constraints.maxWidth - (_sidePadding * 2)) /
+                            tabs.length,
                         top: 0,
                         bottom: 0,
                         child: GestureDetector(
@@ -199,13 +200,14 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
                                 tabs[i],
                                 maxLines: 1,
                                 softWrap: false,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
                         ),
                       ),
 
-                    // Original animated outline painter.
+                    // ANIMATED TAB OUTLINE
                     Positioned.fill(
                       child: IgnorePointer(
                         child: AnimatedBuilder(
@@ -233,9 +235,9 @@ class _CustomTabHeaderState extends State<CustomTabHeader>
   }
 }
 
-// ====================================================
-// ORIGINAL SEAMLESS TAB PAINTER - UNCHANGED
-// ====================================================
+// ================================================
+// SEAMLESS TAB PAINTER
+// ================================================
 
 class SeamlessTabPainter extends CustomPainter {
   final Rect? activeRect;
