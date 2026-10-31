@@ -35,8 +35,19 @@ class _ProductCardCarouselState extends State<ProductCardCarousel> {
     ),
   ];
 
-  // Background color matched with Mega Fashion banner
-  static const Color backgroundColor = Color(0xFFE6A84A);
+  // Warm champagne-gold and peach gradient
+  static const LinearGradient backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFFFAB13E),
+      Color(0xFFF9C477),
+      Color(0xFFFBD9A5),
+      Color(0xFFFDE6C6),
+      Color(0xFFFEF0DB),
+    ],
+    stops: [0.0, 0.25, 0.50, 0.75, 1.0],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -48,57 +59,50 @@ class _ProductCardCarouselState extends State<ProductCardCarousel> {
 
     return Container(
       width: double.infinity,
-
-      // Exact background color
-      color: backgroundColor,
-
+      decoration: const BoxDecoration(gradient: backgroundGradient),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Top spacing
           const SizedBox(height: 15),
 
           // Product carousel
-          CarouselSlider.builder(
-            itemCount: _products.length,
+          ClipRect(
+            child: CarouselSlider.builder(
+              itemCount: _products.length,
+              itemBuilder: (context, index, realIndex) {
+                final product = _products[index];
+                final isActive = index == _currentIndex;
 
-            itemBuilder: (context, index, realIndex) {
-              final product = _products[index];
-              final isActive = index == _currentIndex;
-
-              return Center(
-                child: SizedBox(
-                  width: cardWidth,
-                  height: carouselHeight - (isActive ? 0 : 12),
-
-                  child: AnimatedScale(
-                    scale: isActive ? 1.0 : 0.96,
-                    duration: const Duration(milliseconds: 350),
-                    curve: Curves.easeOutCubic,
-
-                    child: ProductCard(product: product, isActive: isActive),
+                return Center(
+                  child: SizedBox(
+                    width: cardWidth,
+                    height: carouselHeight - (isActive ? 0 : 12),
+                    child: AnimatedScale(
+                      scale: isActive ? 1.0 : 0.96,
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeOutCubic,
+                      child: ProductCard(product: product, isActive: isActive),
+                    ),
                   ),
-                ),
-              );
-            },
-
-            options: CarouselOptions(
-              height: carouselHeight,
-              viewportFraction: 0.35,
-              initialPage: 0,
-              enableInfiniteScroll: true,
-              enlargeCenterPage: false,
-              padEnds: true,
-              scrollDirection: Axis.horizontal,
-              scrollPhysics: const BouncingScrollPhysics(),
-              pageSnapping: true,
-              autoPlay: false,
-
-              onPageChanged: (index, reason) {
-                setState(() {
-                  _currentIndex = index % _products.length;
-                });
+                );
               },
+              options: CarouselOptions(
+                height: carouselHeight,
+                viewportFraction: 0.35,
+                initialPage: 0,
+                enableInfiniteScroll: true,
+                enlargeCenterPage: false,
+                padEnds: true,
+                scrollDirection: Axis.horizontal,
+                scrollPhysics: const BouncingScrollPhysics(),
+                pageSnapping: true,
+                autoPlay: false,
+                onPageChanged: (index, reason) {
+                  setState(() {
+                    _currentIndex = index % _products.length;
+                  });
+                },
+              ),
             ),
           ),
 
@@ -116,7 +120,6 @@ class _ProductCardCarouselState extends State<ProductCardCarousel> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 width: isActive ? 20 : 7,
                 height: 7,
-
                 decoration: BoxDecoration(
                   color: isActive ? const Color(0xFF252525) : Colors.white70,
                   borderRadius: BorderRadius.circular(20),
@@ -170,11 +173,9 @@ class ProductCard extends StatelessWidget {
 
     return Container(
       clipBehavior: Clip.antiAlias,
-
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isActive ? 0.12 : 0.05),
@@ -183,7 +184,6 @@ class ProductCard extends StatelessWidget {
           ),
         ],
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -198,18 +198,15 @@ class ProductCard extends StatelessWidget {
                     scale: isActive ? 1.0 : 1.04,
                     duration: const Duration(milliseconds: 400),
                     curve: Curves.easeOutCubic,
-
                     child: Image.network(
                       product.image,
                       fit: BoxFit.cover,
-
                       loadingBuilder: (context, child, progress) {
                         if (progress == null) return child;
 
                         return Container(
                           color: Colors.grey.shade100,
                           alignment: Alignment.center,
-
                           child: SizedBox(
                             width: 18 * scale,
                             height: 18 * scale,
@@ -219,12 +216,10 @@ class ProductCard extends StatelessWidget {
                           ),
                         );
                       },
-
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           color: Colors.grey.shade100,
                           alignment: Alignment.center,
-
                           child: Icon(
                             Icons.image_not_supported_outlined,
                             color: Colors.grey.shade500,
@@ -238,7 +233,6 @@ class ProductCard extends StatelessWidget {
                   // Image overlay
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 350),
-
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
@@ -257,19 +251,15 @@ class ProductCard extends StatelessWidget {
                   Positioned(
                     top: 6 * scale,
                     right: 6 * scale,
-
                     child: AnimatedOpacity(
                       opacity: isActive ? 1 : 0.7,
                       duration: const Duration(milliseconds: 300),
-
                       child: Container(
                         padding: EdgeInsets.all(5 * scale),
-
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.92),
                           shape: BoxShape.circle,
                         ),
-
                         child: Icon(
                           Icons.favorite_border,
                           size: 13 * scale,
@@ -286,7 +276,6 @@ class ProductCard extends StatelessWidget {
           // Product details
           Expanded(
             flex: 6,
-
             child: Container(
               padding: EdgeInsets.fromLTRB(
                 padding,
@@ -294,7 +283,6 @@ class ProductCard extends StatelessWidget {
                 padding,
                 6 * scale,
               ),
-
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -302,92 +290,78 @@ class ProductCard extends StatelessWidget {
                   colors: product.colors,
                 ),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.brand,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: brandFont,
+                      height: 1.15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
 
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.brand,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  SizedBox(height: 3 * scale),
 
-                        style: TextStyle(
-                          fontSize: brandFont,
-                          height: 1.15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
+                  Text(
+                    product.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: titleFont,
+                      height: 1.1,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
 
-                      SizedBox(height: 3 * scale),
+                  SizedBox(height: 4 * scale),
 
-                      Text(
-                        product.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  Text(
+                    product.price,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: priceFont,
+                      height: 1.1,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
 
-                        style: TextStyle(
-                          fontSize: titleFont,
-                          height: 1.1,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
+                  const Spacer(),
 
-                      SizedBox(height: 4 * scale),
-
-                      Text(
-                        product.price,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-
-                        style: TextStyle(
-                          fontSize: priceFont,
-                          height: 1.1,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      Align(
-                        alignment: Alignment.bottomRight,
-
-                        child: AnimatedScale(
-                          scale: isActive ? 1.0 : 0.92,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeOutCubic,
-
-                          child: Material(
-                            color: const Color(0xFF0878F9),
-                            shape: const CircleBorder(),
-
-                            child: InkWell(
-                              customBorder: const CircleBorder(),
-
-                              onTap: () {
-                                // Add your product action here.
-                              },
-
-                              child: SizedBox(
-                                width: buttonSize,
-                                height: buttonSize,
-
-                                child: Icon(
-                                  Icons.add,
-                                  size: 17 * scale,
-                                  color: Colors.white,
-                                ),
-                              ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: AnimatedScale(
+                      scale: isActive ? 1.0 : 0.92,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      child: Material(
+                        color: const Color(0xFF0878F9),
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () {
+                            // Add your product action here.
+                          },
+                          child: SizedBox(
+                            width: buttonSize,
+                            height: buttonSize,
+                            child: Icon(
+                              Icons.add,
+                              size: 17 * scale,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  );
-                },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
